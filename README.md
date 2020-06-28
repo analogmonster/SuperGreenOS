@@ -22,6 +22,8 @@
 
 ![WeedAppPic](assets/weedapppic.png?raw=true "WeedAppPic")
 
+Analog Monster's Fork of SuperGreenOS.  I couldn't compile following the instructions, some dependencies were missing plus some code needed modifying.  I have put this here for now to help people.
+
 # SuperGreenOS
 
 SuperGreenOS provides most features used when growing cannabis, all in one package, and controllable from your smartphone, pc, mac, linux, toaster, plumbus, whatnot...
@@ -63,8 +65,10 @@ They have a very good quickstart [here](https://docs.espressif.com/projects/esp-
 Now you should be able to clone and build the firmware:
 
 ```
-
-git clone https://github.com/supergreenlab/SuperGreenOS.git
+sudo apt-get install npm python-serial
+sudo npm -g install ejs-cli
+cd esp
+git clone https://github.com/analogmonster/SuperGreenOS.git
 cd SuperGreenOS
 ./update_templates.sh config.controller.json
 ./update_htmlapp.sh config.controller.json
