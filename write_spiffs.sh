@@ -6,7 +6,7 @@ set -e
 
 GREEN="\033[0;32m"
 NC="\033[0m"
-SERIAL_PORT=${SERIAL_PORT:-"/dev/ttyUSB1"}
+SERIAL_PORT=${SERIAL_PORT:-"/dev/ttyUSB0"}
 
 echo -e "Creating spiffs.bin partition:"
 rm -rf spiffs_fs_gz
