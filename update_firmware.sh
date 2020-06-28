@@ -23,7 +23,7 @@ set -e
 GREEN="\033[0;32m"
 NC="\033[0m"
 NAME="SuperGreenOSBoilerplate"
-SERIAL_PORT=${SERIAL_PORT:-"/dev/ttyUSB1"}
+SERIAL_PORT=${SERIAL_PORT:-"/dev/ttyUSB0"}
 
 if [ "$#" -eq 1 ]; then
   NAME=$1
