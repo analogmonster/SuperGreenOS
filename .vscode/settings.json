@@ -1,0 +1,6 @@
+{
+  //ensures we maintain line endings across different environments 
+  //eg UNIX based line endings are LF when Windows is CRLF
+    "files.eol": "\n"
+  }
+  

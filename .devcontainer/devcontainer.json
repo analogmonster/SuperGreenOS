@@ -1,0 +1,9 @@
+{
+  "name": "SuperGreenOS Legacy Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "devuser",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind"
+}
