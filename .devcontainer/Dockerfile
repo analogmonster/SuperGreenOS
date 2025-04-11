@@ -1,5 +1,5 @@
-# Use the standard Ubuntu 20.04 image
-FROM ubuntu:20.04
+# Use Ubuntu 20.04 image from release date of ESP-IDF v3.3.5
+FROM ubuntu:focal-20210217
 
 # Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -10,63 +10,37 @@ RUN apt-get update && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8
 
-# Install system dependencies and development tools (non-ESP-IDF related)
-RUN apt-get update && apt-get install -y \
+# Install system dependencies and development tools
+RUN apt-get install -y \
     apt-utils \
-    git \
-    wget \
-    curl \
-    make \
-    libffi-dev \
-    libssl-dev \
-    libncurses-dev \
-    flex \
     bison \
-    gperf \
-    cmake \
-    ninja-build \
+    build-essential \
     ccache \
+    cmake \
+    curl \
+    flex \
+    git \
+    gperf \
+    libbz2-dev \
+    libffi-dev \
+    libncurses-dev \
+    libreadline-dev \
+    libssl-dev \
     libsodium-dev \
     libusb-1.0-0 \
-	usbutils \
-	pkg-config \
-	xz-utils \
-    && apt-get clean
-
-# Install Python 2.7 and required dependencies
-RUN apt-get update && apt-get install -y \
-    python2.7 \
-    libpython2.7 \
-    curl \
-    && apt-get clean
-
-# Set python2.7 as the default
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-
-# Manually install pip for Python 2.7
-RUN curl -sS https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py && \
-    python2.7 get-pip.py && \
-    rm get-pip.py
-
-# Fix pip for Python 2.7 and install virtualenv
-RUN python2.7 -m pip install --upgrade "pip==20.3.4" && \
-    pip install virtualenv==16.7.10
-
-# Set UTF-8 encoding to prevent UnicodeDecodeError during tool installation
-ENV PYTHONIOENCODING=utf-8
-
-# Install Python packages required by ESP-IDF v3.3.1 (June 2020 snapshot)
-RUN python2.7 -m pip install --upgrade pip==20.3.4 && \
-    python2.7 -m pip install --user \
-      pyserial==3.4 \
-      future==0.18.2 \
-      cryptography==2.9.2 \
-      pyparsing==2.4.7 \
-      pyelftools==0.26 \
-      gdbgui==0.13.2.0 \
-      pygdbmi==0.9.0.3 \
-      brotli==1.0.7 \
-      bidict==0.18.4
+    make \
+    ninja-build \
+    pkg-config \
+    python3 \
+    python3-dev \
+    python3-pip \
+    python3-venv \
+    usbutils \
+    wget \
+    xz-utils \
+    zlib1g-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install CUE v0.0.8
 WORKDIR /tmp
@@ -75,44 +49,44 @@ RUN wget https://github.com/cue-lang/cue/releases/download/v0.0.8/cue_0.0.8_Linu
     mv ./cue /usr/local/bin/ && \
     rm -rf /tmp/cue_0.0.8_Linux_x86_64.tar.gz
 
-# Install mkspiffs v0.2.3
+# Build and install mkspiffs v0.2.3 from source using the generic config
 WORKDIR /tmp
-RUN wget https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-linux64.tar.gz && \
-    tar -xzf mkspiffs-0.2.3-arduino-esp32-linux64.tar.gz && \
-    mv mkspiffs-0.2.3-arduino-esp32-linux64/mkspiffs /usr/local/bin/mkspiffs && \
-    chmod +x /usr/local/bin/mkspiffs && \
-    rm -rf mkspiffs-0.2.3-arduino-esp32-linux64*
+RUN git clone --branch 0.2.3 https://github.com/igrr/mkspiffs.git && \
+cd mkspiffs && \
+git submodule update --init && \
+make dist BUILD_CONFIG_NAME=generic && \
+mv mkspiffs /usr/local/bin/mkspiffs && \
+chmod +x /usr/local/bin/mkspiffs && \
+cd /tmp && rm -rf mkspiffs
 
-# Install Node.js v12.18.0
+# Install Node.js v14.15.4
 WORKDIR /tmp
-RUN wget https://nodejs.org/dist/v12.18.0/node-v12.18.0-linux-x64.tar.xz && \
-    tar -xf node-v12.18.0-linux-x64.tar.xz && \
-    cp -r node-v12.18.0-linux-x64/bin /usr/local/ && \
-    cp -r node-v12.18.0-linux-x64/include /usr/local/ && \
-    cp -r node-v12.18.0-linux-x64/lib /usr/local/ && \
-    cp -r node-v12.18.0-linux-x64/share /usr/local/ && \
-    rm -rf node-v12.18.0-linux-x64*
+RUN wget https://nodejs.org/dist/v14.15.4/node-v14.15.4-linux-x64.tar.xz && \
+    tar -xf node-v14.15.4-linux-x64.tar.xz && \
+    cp -r node-v14.15.4-linux-x64/bin /usr/local/ && \
+    cp -r node-v14.15.4-linux-x64/include /usr/local/ && \
+    cp -r node-v14.15.4-linux-x64/lib /usr/local/ && \
+    cp -r node-v14.15.4-linux-x64/share /usr/local/ && \
+    rm -rf node-v14.15.4-linux-x64*
 
-# Install ejs-cli v2.1.0 (June 2020 version)
-# Consider switching to v2.2.0 (released August 2020) if compatibility allows
-RUN npm install -g ejs-cli@2.1.0
+# Install ejs-cli v2.2.1 (Dec 2020 version)
+RUN npm install -g ejs-cli@2.2.1
 
-# --- ESP-IDF Setup ---
-# We install a known working version of ESP-IDF (commit from June 2020).
-# WARNING: Do NOT run the install of requirements.txt automatically here —
-# we manually specify and version those Python dependencies instead.
-# Reference: https://docs.espressif.com/projects/esp-idf/en/v3.3.2/get-started/index.html
-
-# ESP-IDF v3.3.1 setup (do not source export.sh during build)
-ENV IDF_PATH=/opt/esp-idf_release_3.3.1
-
-# Clone, checkout specific commit, fix permissions and safe.directory (as root)
+# ESP-IDF v3.3.5 setup (do not source export.sh during build)
+ENV IDF_PATH=/opt/esp-idf_v3.3.5
 WORKDIR /opt
-RUN git clone --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH} && \
-    cd ${IDF_PATH} && \
-    git checkout 143d26aa49df524e10fb8e41a71d12e731b9b71d && \
+RUN git clone -b v3.3.5 --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH} && \
     git config --system --add safe.directory ${IDF_PATH} && \
     chmod -R a+rx ${IDF_PATH}
+
+# Install ESP-IDF Python dependencies globally
+RUN python3 -m pip install -r ${IDF_PATH}/requirements.txt
+
+# Set Python 3 as the default python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+
+# Synchronize the container's system clock to host
+RUN apt-get update && apt-get install -y ntpdate && ntpdate ntp.ubuntu.com
 
 # Create user and allow passwordless sudo
 RUN useradd -ms /bin/bash devuser && \
@@ -122,15 +96,16 @@ RUN useradd -ms /bin/bash devuser && \
 
 # Switch to devuser and install ESP-IDF tools to their home
 USER devuser
-RUN /opt/esp-idf_release_3.3.1/install.sh esp32
-
-# Add IDF paths to devuser's .bashrc
-RUN echo "export IDF_PATH=${IDF_PATH}" >> /home/devuser/.bashrc && \
-    echo '. ${IDF_PATH}/export.sh' >> /home/devuser/.bashrc
+RUN ${IDF_PATH}/install.sh esp32
 
 # Switch back to root and fix permissions
 USER root
 RUN chown -R devuser:devuser /home/devuser/.espressif
+
+# Add IDF paths to devuser's .bashrc
+RUN echo "export IDF_PATH=${IDF_PATH}" >> /home/devuser/.bashrc && \
+    echo '. ${IDF_PATH}/export.sh' >> /home/devuser/.bashrc
+RUN chown -R devuser:devuser ${IDF_PATH}
 
 # Set locale and environment
 ENV LANG=en_US.UTF-8
