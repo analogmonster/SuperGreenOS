@@ -5,5 +5,6 @@
   },
   "remoteUser": "devuser",
   "workspaceFolder": "/workspace",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind"
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "postCreateCommand": "rm -rf build && echo 'Clean build folder'"
 }
