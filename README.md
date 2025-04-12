@@ -9,14 +9,8 @@
       * [Workspace setup](#workspace-setup)
          * [Esp-idf setup](#esp-idf-setup)
          * [Clone repo, build and run](#clone-repo-build-and-run)
-         * [Connect to wifi](#connect-to-wifi)
-      * [Basic concept](#basic-concept)
-      * [Key / value](#key--value)
-      * [Available keys](#available-keys)
-         * [Core keys](#core-keys)
-         * [Controller keys](#controller-keys)
-         * [Box keys](#box-keys)
-         * [Led keys](#led-keys)
+         * [How to use](#how-to-use)
+
 
 ![WeedAppPic](assets/weedapppic.png?raw=true "WeedAppPic")
 
@@ -52,9 +46,7 @@ This is the firmware that runs the [SuperGreenController](https://github.com/sup
 
 # Workspace setup
 
-If you haven't already done it, you'll to setup esp-idf's toolchain and sdk.
-
-They have a very good quickstart [here](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html).
+Included in this repo is a docker setup with all the required pre-requisites to build the firmware.  You just need to create a build.env file - see the example in the repo.
 
 ## Clone repo, build and run
 
@@ -62,15 +54,27 @@ Now you should be able to clone and build the firmware:
 
 ```
 
+# Optional: fix permissions if your workspace was mounted with root ownership
+sudo chown -R devuser:devuser /workspace
+# CAUTION! If your devcontainer is mounting your local copy of this repo to /workspace (the default behavior), 
+# running git clone inside the container will overwrite the host copy. 
+# Only do this if /workspace is currently empty or not a copy of the branch you want to build from.
 git clone https://github.com/supergreenlab/SuperGreenOS.git
 cd SuperGreenOS
+
+```
+
+The below will build the controller firmware.  To build for another variant, replace config.controller.json with config.<variant_name>.json
+
+```
+
 ./update_templates.sh config.controller.json
 ./update_htmlapp.sh config.controller.json
 make -j4
 
 ```
 
-The plug your controller or any esp32 based board and run the commands:
+Next, plug in your [SuperGreenController](https://github.com/supergreenlab/SuperGreenController) or any supported esp32 based board and run the commands:
 
 ```
 
@@ -84,72 +88,6 @@ The first command flashes the firmware, the second writes the embedded admin int
 # How to use
 
 Once the firmware is flashed you can access the controller's wifi network, once connected go to http://192.168.4.1/fs/app.html,
-this will display the html embedded admin interface, which allows you to easily modify any of the controller's parameter.
+this will display the html embedded admin interface, which allows you to easily modify any of the controller's parameters.
 
 ![Admin](assets/admin.png?raw=true "Admin")
-
-
-# Up-2-date dev environment setup 06/2020
-
-## Python 2.7
-
-### macos
-```bash
-brew install python@2
-```
-
-## ESP-IDF
-
-
-```bash
-mkdir -p $HOME/esp && cd $HOME/esp
-git clone --recursive https://github.com/espressif/esp-idf.git esp-idf_release_3.3.1
-cd esp-idf_release_3.3.1
-git checkout 143d26aa49df524e10fb8e41a71d12e731b9b71d
-```
-
-Install Docs reference:
-https://docs.espressif.com/projects/esp-idf/en/v3.3.2/get-started/index.html
-
-```bash
-python2.7 -m pip install --user -r $IDF_PATH/requirements.txt
-```
-
-Practically, a virtualenv is created in ~/.espressif where packages are installed and will be activated with the following addition to shell (.bashrc / .zshrc)
-
-```bash
-export IDF_PATH=$HOME/esp/esp-idf_release_3.3.1
-source $IDF_PATH/export.sh
-```
-
-## ejs-cli
-```bash
-npm -g install ejs-cli
-```
-
-## mkspiffs
-
-Please pay attention to *Build configuration name: generic* and version.
-
-https://github.com/igrr/mkspiffs/releases
-
-```bash
-mkspiffs ver. 0.2.3
-Build configuration name: generic
-SPIFFS ver. 0.3.7-5-gf5e26c4
-Extra build flags: (none)
-SPIFFS configuration:
-  SPIFFS_OBJ_NAME_LEN: 32
-  SPIFFS_OBJ_META_LEN: 0
-  SPIFFS_USE_MAGIC: 1
-  SPIFFS_USE_MAGIC_LENGTH: 1
-  SPIFFS_ALIGNED_OBJECT_INDEX_TABLES: 0
-```
-
-## cue
-
-https://github.com/cuelang/cue/releases
-
-```bash
-cue version 0.0.8 darwin/amd64
-```
